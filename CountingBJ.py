@@ -5,7 +5,7 @@ def main():
     agent = Agent()
     data = DataCollector()
     
-    for _ in range(100):
+    for _ in range(1000):
         game.reset()
         agent.play_game(game)
         data.record(agent.current_bet, agent.bankroll)
@@ -18,7 +18,7 @@ class BlackjackGame:
         self.deck = self.create_shuffled_deck()
         self.dealer_hand = []
         self.player_hand = []
-
+ 
     def create_shuffled_deck(self):
         # Create and shuffle the deck
         deck = []
@@ -156,7 +156,22 @@ class Agent:
 
     def decide_move(self, player_hand, dealer_card):
         # Implement Basic Strategy rules
-        pass
+        player_value = BlackjackGame().get_hand_value(BlackjackGame().player_hand)
+        dealer_value = BlackjackGame().get_hand_value(BlackjackGame().dealer_hand[0])#dealers upcard 
+        
+        if player_value >= 17:
+            return 'stand'
+        elif player_value >= 13 and dealer_value <= 6:
+            return 'stand'
+        elif player_value == 13 and 4 <= dealer_value <= 6:
+            return 'stand'
+        else:
+            return 'hit'
+        
+
+        
+
+
 
     def play_game(self, game):
         # Play one game using counting and basic strategy
