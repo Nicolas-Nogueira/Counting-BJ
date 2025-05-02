@@ -157,19 +157,35 @@ class Agent:
     def decide_move(self, player_hand, dealer_card):
         # Implement Basic Strategy rules
         player_value = BlackjackGame().get_hand_value(BlackjackGame().player_hand)
-        dealer_value = BlackjackGame().get_hand_value(BlackjackGame().dealer_hand[0])#dealers upcard 
-        
-        if player_value >= 17:
-            return 'stand'
-        elif player_value >= 13 and dealer_value <= 6:
-            return 'stand'
-        elif player_value == 13 and 4 <= dealer_value <= 6:
-            return 'stand'
-        else:
-            return 'hit'
-        
+        dealer_value = BlackjackGame().get_hand_value(BlackjackGame().dealer_hand[0])#dealers upcard
+        can_double = len(player_hand) == 2 
 
-        
+         #soft total 
+        while player_value[0] or  player_value[1] == 11:
+            if player_value <= 17: 
+                return 'double' if can_double and 3 <= dealer_value <=6 else 'hit'
+            elif player_value == 18:
+                return 'double' if can_double else 'stand'
+            elif dealer_value in [2,7,8]:
+                return 'stand'
+            else: # Soft 19 or more
+                return 'hit'
+            
+
+        #hard total 
+        if player_value <= 9 :
+            return 'double' if can_double and 3 <= dealer_value <=6 else 'hit'
+        elif player_value == 10 :
+            return 'double' if can_double and dealer_value <= 9 else 'hit'
+        elif player_value == 11:
+            return 'double' if can_double else 'hit' 
+        elif player_value == 12:
+            return 'stand' if can_double and dealer_value in [4,5,6] else 'hit'
+        elif player_value in [13,14,15,16]:
+            return 'stand' if can_double and dealer_value in range(2,6) else 'hit'
+        else:
+            return 'stand'
+
 
 
 
