@@ -68,7 +68,7 @@ class BlackjackGame:
             value -= 10
             num_aces -= 1
 
-        return value
+        return value 
 
     def dealer_turn(self):
         # Dealer hits according to rules (typically until 17+)
@@ -160,19 +160,7 @@ class Agent:
         dealer_val = BlackjackGame().get_hand_value([dealer_card])
         can_double = len(player_hand) == 2 
 
-         #soft total 
-        while player_val[0] or  player_val[1] == 11:
-            if player_val <= 17: 
-                return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
-            elif player_val == 18:
-                return 'double' if can_double else 'stand'
-            elif dealer_val in [2,7,8]:
-                return 'stand'
-            else: # Soft 19 or more
-                return 'hit'
-            
-
-        #hard total 
+               #hard total 
         if player_val <= 9 :
             return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
         elif player_val == 10 :
