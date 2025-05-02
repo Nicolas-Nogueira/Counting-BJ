@@ -156,46 +156,85 @@ class Agent:
 
     def decide_move(self, player_hand, dealer_card):
         # Implement Basic Strategy rules
-        player_value = BlackjackGame().get_hand_value(BlackjackGame().player_hand)
-        dealer_value = BlackjackGame().get_hand_value(BlackjackGame().dealer_hand[0])#dealers upcard
+        player_val = BlackjackGame().get_hand_value(player_hand)
+        dealer_val = BlackjackGame().get_hand_value(dealer_card) #dealers upcard
         can_double = len(player_hand) == 2 
 
          #soft total 
-        while player_value[0] or  player_value[1] == 11:
-            if player_value <= 17: 
-                return 'double' if can_double and 3 <= dealer_value <=6 else 'hit'
-            elif player_value == 18:
+        while player_val[0] or  player_val[1] == 11:
+            if player_val <= 17: 
+                return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
+            elif player_val == 18:
                 return 'double' if can_double else 'stand'
-            elif dealer_value in [2,7,8]:
+            elif dealer_val in [2,7,8]:
                 return 'stand'
             else: # Soft 19 or more
                 return 'hit'
             
 
         #hard total 
-        if player_value <= 9 :
-            return 'double' if can_double and 3 <= dealer_value <=6 else 'hit'
-        elif player_value == 10 :
-            return 'double' if can_double and dealer_value <= 9 else 'hit'
-        elif player_value == 11:
+        if player_val <= 9 :
+            return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
+        elif player_val == 10 :
+            return 'double' if can_double and dealer_val <= 9 else 'hit'
+        elif player_val == 11:
             return 'double' if can_double else 'hit' 
-        elif player_value == 12:
-            return 'stand' if can_double and dealer_value in [4,5,6] else 'hit'
-        elif player_value in [13,14,15,16]:
-            return 'stand' if can_double and dealer_value in range(2,6) else 'hit'
+        elif player_val == 12:
+            return 'stand' if can_double and dealer_val in [4,5,6] else 'hit'
+        elif player_val in [13,14,15,16]:
+            return 'stand' if can_double and dealer_val in range(2,6) else 'hit'
         else:
             return 'stand'
 
-
-
-
     def play_game(self, game):
-        # Play one game using counting and basic strategy
-        self.place_bet()
+        # initial setup 
+        cards_seen = []
+        deck = game.create_shuffled_deck()
+        bankroll = self.bankroll 
+
+
+        #betting 
+        true_count = 0
+        running_count = 0
+        bet = self.place_bet()
+
+        #deak initial cards 
+        player_hand = game.player_hand
+        dealer_hand = game.dealer_hand
+        dealer_upcard = game.dealer_hand[0]
+        cards_seen = [player_hand,dealer_hand]
+
+        player_value = game.get_hand_value(player_hand)
+        dealer_value = game.get_hand_value(dealer_hand)
+        dealer_upcard_value = game.get_hand_value(dealer_upcard)
+
+        #check for blackjack
+        if game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == False :
+            #win
+            self.bankroll += bet*1.5
+        elif game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == True:
+            #push 
+            self.bankroll += 0  
+        elif game.is_blackjack(player_value) == False and game.is_blackjack(dealer_value) == True:
+            #lose
+            self.bankroll -= bet
+    
+
+        #loop until One party busts/Or both have standing hands to compare
         # Play moves based on strategy
+        move = self.decide_move(player_value,dealer_upcard_value)
+        if move == 'hit':
+            player_hand += game.deal_card()
+    
+
+
         # Update counts after seeing new cards
+        self.update_running_count()
         # Determine win or loss
+        game.is_bust() 
+        game.is_blackjack
         # Update bankroll accordingly
+        self.bankroll - self.place_bet()
         pass
 
 # Data Collector Class
