@@ -192,32 +192,37 @@ class Agent:
         deck = game.create_shuffled_deck()
         bankroll = self.bankroll 
 
+        bankroll = self.bankroll
+        print(f"Initial bankroll: {bankroll}")
 
-        #betting 
-        true_count = 0
-        running_count = 0
+        # Place initial bet
+        
         bet = self.place_bet()
+        
 
-        #deak initial cards 
+        # Deal initial cards
         player_hand = game.player_hand
         dealer_hand = game.dealer_hand
-        dealer_upcard = game.dealer_hand[0]
-        cards_seen = [player_hand,dealer_hand]
+        dealer_upcard = dealer_hand[0]
+        print(f"Player hand: {player_hand}, Dealer hand: {dealer_hand}, Dealer upcard: {dealer_upcard}")
+        
 
+        # Calculate hand values
         player_value = game.get_hand_value(player_hand)
         dealer_value = game.get_hand_value(dealer_hand)
         dealer_upcard_value = game.get_hand_value(dealer_upcard)
+        print(f"Player value: {player_value}, Dealer value: {dealer_value}, Dealer upcard value: {dealer_upcard_value}")
 
         #check for blackjack
         if game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == False :
             #win
-            self.bankroll += bet*1.5
+            bankroll += bet*1.5
         elif game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == True:
             #push 
-            self.bankroll += 0  
+            bankroll += 0  
         elif game.is_blackjack(player_value) == False and game.is_blackjack(dealer_value) == True:
             #lose
-            self.bankroll -= bet
+            bankroll -= bet
     
 
         #loop until One party busts/Or both have standing hands to compare
@@ -225,17 +230,28 @@ class Agent:
         move = self.decide_move(player_value,dealer_upcard_value)
         if move == 'hit':
             player_hand += game.deal_card()
-    
+            cards_seen[player_hand]
+            self.update_running_count(cards_seen)
+        elif move == 'double':
+            player_hand += game.deal_card()
+            cards_seen[player_hand]
+            self.update_running_count(cards_seen)
+            bet * 2
+        else:
+            #stand 
+            pass
 
+        #dealer turn 
+        cards_seen[game.dealer_turn()]
 
-        # Update counts after seeing new cards
-        self.update_running_count()
-        # Determine win or loss
-        game.is_bust() 
-        game.is_blackjack
-        # Update bankroll accordingly
-        self.bankroll - self.place_bet()
-        pass
+        #outcome
+        if player_value > dealer_value:
+            payout = bet + bet 
+            bankroll += payout
+        elif player_value == dealer_value:
+            bankroll += 0
+        else:
+            bankroll -= bet
 
 # Data Collector Class
 class DataCollector:
