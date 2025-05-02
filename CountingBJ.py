@@ -1,5 +1,5 @@
 import random 
-
+import matplotlib.pyplot as plt
 
 # Main Program
 def main():
@@ -7,7 +7,8 @@ def main():
     agent = Agent()
     data = DataCollector()
     
-    for _ in range(100):
+
+    for _ in range(1000):
         game.reset()
         agent.play_game(game)
         data.record(agent.current_bet, agent.bankroll)
@@ -252,6 +253,31 @@ class DataCollector:
     def record(self, bet, bankroll):
         self.bets.append(bet)
         self.profits.append(bankroll)
+
+    def visualize_results(self):
+        rounds = list(range(1, len(self.bets) + 1))
+        # Plot 1: Bankroll over time
+        plt.figure(figsize=(12, 5))
+
+        plt.subplot(1, 2, 1)
+        plt.plot(rounds, self.profits, label='Bankroll', color='green')
+        plt.xlabel('Round')
+        plt.ylabel('Bankroll ($)')
+        plt.title('📈 Bankroll Over Time')
+        plt.grid(True)
+        plt.legend()
+
+        # Plot 2: Bet size per round
+        plt.subplot(1, 2, 2)
+        plt.plot(rounds, self.bets, label='Bet Size', color='blue')
+        plt.xlabel('Round')
+        plt.ylabel('Bet Amount ($)')
+        plt.title('💵 Bet Size Per Round')
+        plt.grid(True)
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
 
 
 # Run the program
