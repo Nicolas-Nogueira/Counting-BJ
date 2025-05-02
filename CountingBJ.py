@@ -157,7 +157,7 @@ class Agent:
     def decide_move(self, player_hand, dealer_card):
         # Implement Basic Strategy rules
         player_val = BlackjackGame().get_hand_value(player_hand)
-        dealer_val = BlackjackGame().get_hand_value(dealer_card) #dealers upcard
+        dealer_val = BlackjackGame().get_hand_value([dealer_card])
         can_double = len(player_hand) == 2 
 
          #soft total 
@@ -188,70 +188,50 @@ class Agent:
 
     def play_game(self, game):
         # initial setup 
-        cards_seen = []
-        deck = game.create_shuffled_deck()
-        bankroll = self.bankroll 
-
-        bankroll = self.bankroll
-        print(f"Initial bankroll: {bankroll}")
-
-        # Place initial bet
-        
-        bet = self.place_bet()
+        self.place_bet()
+        bet = self.current_bet
         
 
         # Deal initial cards
-        player_hand = game.player_hand
-        dealer_hand = game.dealer_hand
-        dealer_upcard = dealer_hand[0]
-        print(f"Player hand: {player_hand}, Dealer hand: {dealer_hand}, Dealer upcard: {dealer_upcard}")
-        
+        player_hand = game.player_hand.copy()
+        dealer_card = game.dealer_hand[0]
 
-        # Calculate hand values
-        player_value = game.get_hand_value(player_hand)
-        dealer_value = game.get_hand_value(dealer_hand)
-        dealer_upcard_value = game.get_hand_value(dealer_upcard)
-        print(f"Player value: {player_value}, Dealer value: {dealer_value}, Dealer upcard value: {dealer_upcard_value}")
+        move = self.decide_move(player_hand, dealer_card)
 
-        #check for blackjack
-        if game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == False :
-            #win
-            bankroll += bet*1.5
-        elif game.is_blackjack(player_value) == True and game.is_blackjack(dealer_value) == True:
-            #push 
-            bankroll += 0  
-        elif game.is_blackjack(player_value) == False and game.is_blackjack(dealer_value) == True:
-            #lose
-            bankroll -= bet
-    
-
-        #loop until One party busts/Or both have standing hands to compare
-        # Play moves based on strategy
-        move = self.decide_move(player_value,dealer_upcard_value)
         if move == 'hit':
-            player_hand += game.deal_card()
-            cards_seen[player_hand]
-            self.update_running_count(cards_seen)
+            game.deal_card(player_hand)
         elif move == 'double':
-            player_hand += game.deal_card()
-            cards_seen[player_hand]
-            self.update_running_count(cards_seen)
-            bet * 2
-        else:
-            #stand 
-            pass
+            bet *= 2
+            game.deal_card(player_hand)
+        # else stand, do nothing
+
 
         #dealer turn 
-        cards_seen[game.dealer_turn()]
+        game.dealer_turn()
+
+        # Calculate final values
+        player_value = game.get_hand_value(player_hand)
+        dealer_value = game.get_hand_value(game.dealer_hand)
+    
 
         #outcome
-        if player_value > dealer_value:
-            payout = bet + bet 
-            bankroll += payout
-        elif player_value == dealer_value:
-            bankroll += 0
+        if game.is_bust(player_hand):
+            payout = -bet
+        elif game.is_bust(game.dealer_hand):
+            payout = bet
+        elif player_value > dealer_value:
+            payout = bet  
+        elif player_value < dealer_value:
+            payout = -bet
         else:
-            bankroll -= bet
+            payout = 0
+        
+        # Update bankroll
+        self.bankroll += payout
+
+        # Track cards seen
+        cards_seen = player_hand + game.dealer_hand
+        self.update_running_count(cards_seen)
 
 # Data Collector Class
 class DataCollector:
