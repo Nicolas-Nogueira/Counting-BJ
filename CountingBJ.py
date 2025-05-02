@@ -5,7 +5,7 @@ def main():
     agent = Agent()
     data = DataCollector()
     
-    for _ in range(1000):
+    for _ in range(10):
         game.reset()
         agent.play_game(game)
         data.record(agent.current_bet, agent.bankroll)
@@ -14,46 +14,51 @@ def main():
 
 # Blackjack Game Class
 class BlackjackGame:
-    def __init__(self):
+    def __init__(self, num_decks=6, penetration_limit=0.75):
+        self.num_decks = num_decks
+        self.penetration_limit = penetration_limit  # % of cards dealt before reshuffle
+        self.total_cards = 52 * self.num_decks
+        self.cards_dealt = 0
         self.deck = self.create_shuffled_deck()
         self.dealer_hand = []
         self.player_hand = []
- 
+
     def create_shuffled_deck(self):
-        # Create and shuffle the deck
         deck = []
         values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
-        for value in values:
-            for _ in range(4):
-                deck.append(value)
+        for _ in range(self.num_decks):
+            for value in values:
+                for _ in range(4):
+                    deck.append(value)
         random.shuffle(deck)
+        self.cards_dealt = 0  # reset counter on new deck
         return deck
 
     def reset(self):
-        # Reset the deck and deal initial hands
-        self.deck = self.create_shuffled_deck()
+        # Check if we need to reshuffle based on penetration
+        if self.cards_dealt > self.total_cards * self.penetration_limit:
+            print("Reshuffling shoe (penetration limit reached)...")
+            self.deck = self.create_shuffled_deck()
+        
         self.dealer_hand = []
         self.player_hand = []
         self.deal_initial_cards()
 
-    def deal_initial_cards(self):
-        # Deal two cards to dealer and player
-        self.dealer_hand.append(self.deck.pop())
-        self.dealer_hand.append(self.deck.pop())
-        self.player_hand.append(self.deck.pop())
-        self.player_hand.append(self.deck.pop())
-
     def deal_card(self, hand):
-        # Give one card to hand
         card = self.deck.pop()
+        self.cards_dealt += 1
         hand.append(card)
-        return hand
+        return card
+
+    def deal_initial_cards(self):
+        self.deal_card(self.dealer_hand)
+        self.deal_card(self.dealer_hand)
+        self.deal_card(self.player_hand)
+        self.deal_card(self.player_hand)
 
     def get_hand_value(self, hand):
-        # Calculate value of a hand (account for Ace = 1 or 11)
         value = 0
         num_aces = 0
-
         for card in hand:
             if card in ['J', 'Q', 'K']:
                 value += 10
@@ -62,30 +67,24 @@ class BlackjackGame:
                 num_aces += 1
             else:
                 value += card
-
-        # If value > 21 and hand has Aces, reduce value by 10 per Ace
         while value > 21 and num_aces > 0:
             value -= 10
             num_aces -= 1
-
-        return value 
+        return value
 
     def dealer_turn(self):
-        # Dealer hits according to rules (typically until 17+)
         while self.get_hand_value(self.dealer_hand) < 17:
-            self.deal_card(self.dealer_hand) 
+            self.deal_card(self.dealer_hand)
 
     def is_blackjack(self, hand):
-        # Return True if hand is a blackjack
-        if self.get_hand_value(hand) == 21:
-            return True
-        return False
+        return self.get_hand_value(hand) == 21 and len(hand) == 2
 
     def is_bust(self, hand):
-        # Return True if hand value > 21
-        if self.get_hand_value(hand) > 21:
-            return True
-        return False
+        return self.get_hand_value(hand) > 21
+
+    def get_decks_remaining(self):
+        return max(1, len(self.deck) / 52.0)  # avoid divide-by-zero
+
 
 def test_blackjack_game():
     game = BlackjackGame()
@@ -150,9 +149,9 @@ class Agent:
     def place_bet(self):
         # Betting strategy based on true count
         if self.true_count >= 2:
-            self.current_bet = self.betting_unit * (self.true_count - 1)
+            self.current_bet = min(self.betting_unit * (self.true_count - 1), self.bankroll, 250)
         else:
-            self.current_bet = self.betting_unit
+            self.current_bet = min(self.betting_unit, self.bankroll)
 
     def decide_move(self, player_hand, dealer_card):
         # Implement Basic Strategy rules
@@ -176,26 +175,41 @@ class Agent:
 
     def play_game(self, game):
         # initial setup 
+        print("Starting new game round...")
+        
         self.place_bet()
         bet = self.current_bet
+        print(f"Bet placed: ${bet:.2f}")
+        print(f" Running count: {self.running_count}, True count: {self.true_count:.2f}")
+        print(f"Bankroll before round: ${self.bankroll:.2f}")
         
 
         # Deal initial cards
         player_hand = game.player_hand.copy()
         dealer_card = game.dealer_hand[0]
+        print(f" Player hand: {player_hand}, value: {game.get_hand_value(player_hand)}")
+        print(f" Dealer upcard: {dealer_card}")
 
         move = self.decide_move(player_hand, dealer_card)
+        
 
         if move == 'hit':
             game.deal_card(player_hand)
+            print(f" Player hits and receives: {player_hand[-1]}")
         elif move == 'double':
-            bet *= 2
+            bet = min(bet * 2, self.bankroll)
             game.deal_card(player_hand)
-        # else stand, do nothing
+            print(f"Player doubles! New card: {player_hand[-1]}")
+            print(f"New bet amount: ${bet:.2f}")
+        else: 
+            print("Player stands.")
 
+        print(f" Final player hand: {player_hand}, value: {game.get_hand_value(player_hand)}")
 
         #dealer turn 
         game.dealer_turn()
+        print(f" Dealer final hand: {game.dealer_hand}, value: {game.get_hand_value(game.dealer_hand)}")
+
 
         # Calculate final values
         player_value = game.get_hand_value(player_hand)
@@ -205,21 +219,28 @@ class Agent:
         #outcome
         if game.is_bust(player_hand):
             payout = -bet
+            print("Player busted.")
         elif game.is_bust(game.dealer_hand):
             payout = bet
+            print("Dealer busted. Player wins!")
         elif player_value > dealer_value:
             payout = bet  
+            print("Player wins.")
         elif player_value < dealer_value:
             payout = -bet
+            print("Dealer wins.")
         else:
             payout = 0
+            print("Push (tie).")
         
         # Update bankroll
         self.bankroll += payout
+        print(f"Bankroll after round: ${self.bankroll:.2f}")
 
         # Track cards seen
         cards_seen = player_hand + game.dealer_hand
         self.update_running_count(cards_seen)
+        print(f"Updated running count: {self.running_count}")
 
 # Data Collector Class
 class DataCollector:
