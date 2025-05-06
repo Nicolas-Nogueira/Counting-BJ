@@ -3,17 +3,21 @@ import matplotlib.pyplot as plt
 
 # Main Program
 def main():
-    game = BlackjackGame()
-    agent = Agent()
+    counting_game = BlackjackGame()
+    random_game = BlackjackGame()
+    counting_agent = CountingAgent()
+    random_agent = RandomAgent()
     data = DataCollector()
     
-
     for _ in range(100):
-        game.reset()
-        agent.play_game(game)
-        data.record(agent.current_bet, agent.bankroll)
-    
+        counting_game.reset()
+        random_game.reset()
+        counting_agent.play_game(counting_game)
+        random_agent.play_game(random_game)
+        data.record(counting_agent.bankroll, random_agent.bankroll)
+
     data.visualize_results()
+
 
 # Blackjack Game Class
 class BlackjackGame:
@@ -129,7 +133,7 @@ def test_blackjack_game():
 test_blackjack_game()
 
 # Agent Class
-class Agent:
+class CountingAgent:
     def __init__(self):
         self.running_count = 0
         self.true_count = 0
@@ -253,48 +257,48 @@ class RandomAgent:
     def __init__(self):
         self.bankroll = 500
         self.current_bet = 0
+        self.betting_unit = 25  # Same as counting agent for fair comparison
 
     def place_bet(self):
-        self.current_bet += random.choice(range(1,250))
-       
+        # Randomly bet between 1-3 units
+        self.current_bet = random.randint(1, 3) * self.betting_unit
+        self.current_bet = min(self.current_bet, self.bankroll)  # Can't bet more than bankroll
+
     def decide_move(self, player_hand, dealer_card):
-        actions = ['hit','double','stand']
-        return random.choices(actions)
+        # Get current hand value
+        player_value = BlackjackGame().get_hand_value(player_hand)
         
+        # If player has blackjack or 21, always stand
+        if player_value >= 21:
+            return 'stand'
+            
+        # If player has 2 cards, can double
+        can_double = (len(player_hand) == 2)
+        
+        # Randomly choose between available moves
+        if can_double and random.random() < 0.2:  # 20% chance to double if possible
+            return 'double'
+        
+        # 50% chance to hit, 50% chance to stand
+        return 'hit' if random.random() < 0.5 else 'stand'
 
     def play_game(self, game):
-        # initial setup 
-        print("Starting new game round...")
-        
         self.place_bet()
         bet = self.current_bet
-        print(f"Bet placed: ${bet:.2f}")
-        print(f" Running count: {self.running_count}, True count: {self.true_count:.2f}")
-        print(f"Bankroll before round: ${self.bankroll:.2f}")
         
         # Deal initial cards
         dealer_card = game.dealer_hand[0]
-        print(f" Player hand: {game.player_hand}, value: {game.get_hand_value(game.player_hand)}")
-        print(f" Dealer upcard: {dealer_card}")
 
         move = self.decide_move(game.player_hand, dealer_card)
         
         if move == 'hit':
             game.deal_card(game.player_hand)
-            print(f" Player hits and receives: {game.player_hand[-1]}")
         elif move == 'double':
             bet = min(bet * 2, self.bankroll)
             game.deal_card(game.player_hand)
-            print(f"Player doubles! New card: {game.player_hand[-1]}")
-            print(f"New bet amount: ${bet:.2f}")
-        else: 
-            print("Player stands.")
-
-        print(f" Final player hand: {game.player_hand}, value: {game.get_hand_value(game.player_hand)}")
 
         #dealer turn 
         game.dealer_turn()
-        print(f" Dealer final hand: {game.dealer_hand}, value: {game.get_hand_value(game.dealer_hand)}")
 
         # Calculate final values
         player_value = game.get_hand_value(game.player_hand)
@@ -303,61 +307,42 @@ class RandomAgent:
         #outcome
         if game.is_bust(game.player_hand):
             payout = -bet
-            print("Player busted.")
         elif game.is_bust(game.dealer_hand):
             payout = bet
-            print("Dealer busted. Player wins!")
         elif game.is_blackjack(game.player_hand) and not game.is_blackjack(game.dealer_hand):
             payout = bet * 1.5  # Blackjack pays 3:2
-            print("Blackjack! Player wins!")
         elif player_value > dealer_value:
             payout = bet  
-            print("Player wins.")
         elif player_value < dealer_value:
             payout = -bet
-            print("Dealer wins.")
         else:
             payout = 0
-            print("Push (tie).")
         
         # Update bankroll
         self.bankroll += payout
-        print(f"Bankroll after round: ${self.bankroll:.2f}")
 
 # Data Collector Class
 class DataCollector:
     def __init__(self):
-        self.bets = []
-        self.profits = []
-
-    def record(self, bet, bankroll):
-        self.bets.append(bet)
-        self.profits.append(bankroll)
+        self.counting_agent_bankrolls = []
+        self.random_agent_bankrolls = []
+    
+    def record(self, counting_agent_bankroll, random_agent_bankroll):
+        self.counting_agent_bankrolls.append(counting_agent_bankroll)
+        self.random_agent_bankrolls.append(random_agent_bankroll)
 
     def visualize_results(self):
-        rounds = list(range(1, len(self.bets) + 1))
-        # Plot 1: Bankroll over time
-        plt.figure(figsize=(12, 5))
-
-        plt.subplot(1, 2, 1)
-        plt.plot(rounds, self.profits, label='Bankroll', color='green')
-        plt.xlabel('Round')
+        games = list(range(1, len(self.counting_agent_bankrolls) + 1))
+        plt.figure(figsize=(10, 6))
+        plt.plot(games, self.counting_agent_bankrolls, label='Counting Agent', color='blue')
+        plt.plot(games, self.random_agent_bankrolls, label='Random Agent', color='red')
+        plt.xlabel('Game Number')
         plt.ylabel('Bankroll ($)')
-        plt.title('Bankroll Over Time')
-        plt.grid(True)
+        plt.title('Bankroll Comparison: Counting Agent vs Random Agent')
         plt.legend()
-
-        # Plot 2: Bet size per round
-        plt.subplot(1, 2, 2)
-        plt.plot(rounds, self.bets, label='Bet Size', color='blue')
-        plt.xlabel('Round')
-        plt.ylabel('Bet Amount ($)')
-        plt.title('Bet Size Per Round')
         plt.grid(True)
-        plt.legend()
-
-        plt.tight_layout()
         plt.show()
+
 
 
 # Run the program
