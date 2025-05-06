@@ -162,7 +162,11 @@ class Agent:
         dealer_val = BlackjackGame().get_hand_value([dealer_card])
         can_double = len(player_hand) == 2 
 
-               #hard total 
+        #soft 
+        #while isSoft
+
+
+        #hard total 
         if player_val <= 9 :
             return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
         elif player_val == 10 :
@@ -243,6 +247,82 @@ class Agent:
         self.update_running_count(cards_seen)
         self.calculate_true_count(game.get_decks_remaining())
         print(f"Updated running count: {self.running_count}, True count: {self.true_count:.2f}")
+
+#Random Agent Class
+class RandomAgent:
+    def __init__(self):
+        self.bankroll = 500
+        self.current_bet = 0
+
+    def place_bet(self):
+        self.current_bet += random.choice(range(1,250))
+       
+    def decide_move(self, player_hand, dealer_card):
+        actions = ['hit','double','stand']
+        return random.choices(actions)
+        
+
+    def play_game(self, game):
+        # initial setup 
+        print("Starting new game round...")
+        
+        self.place_bet()
+        bet = self.current_bet
+        print(f"Bet placed: ${bet:.2f}")
+        print(f" Running count: {self.running_count}, True count: {self.true_count:.2f}")
+        print(f"Bankroll before round: ${self.bankroll:.2f}")
+        
+        # Deal initial cards
+        dealer_card = game.dealer_hand[0]
+        print(f" Player hand: {game.player_hand}, value: {game.get_hand_value(game.player_hand)}")
+        print(f" Dealer upcard: {dealer_card}")
+
+        move = self.decide_move(game.player_hand, dealer_card)
+        
+        if move == 'hit':
+            game.deal_card(game.player_hand)
+            print(f" Player hits and receives: {game.player_hand[-1]}")
+        elif move == 'double':
+            bet = min(bet * 2, self.bankroll)
+            game.deal_card(game.player_hand)
+            print(f"Player doubles! New card: {game.player_hand[-1]}")
+            print(f"New bet amount: ${bet:.2f}")
+        else: 
+            print("Player stands.")
+
+        print(f" Final player hand: {game.player_hand}, value: {game.get_hand_value(game.player_hand)}")
+
+        #dealer turn 
+        game.dealer_turn()
+        print(f" Dealer final hand: {game.dealer_hand}, value: {game.get_hand_value(game.dealer_hand)}")
+
+        # Calculate final values
+        player_value = game.get_hand_value(game.player_hand)
+        dealer_value = game.get_hand_value(game.dealer_hand)
+    
+        #outcome
+        if game.is_bust(game.player_hand):
+            payout = -bet
+            print("Player busted.")
+        elif game.is_bust(game.dealer_hand):
+            payout = bet
+            print("Dealer busted. Player wins!")
+        elif game.is_blackjack(game.player_hand) and not game.is_blackjack(game.dealer_hand):
+            payout = bet * 1.5  # Blackjack pays 3:2
+            print("Blackjack! Player wins!")
+        elif player_value > dealer_value:
+            payout = bet  
+            print("Player wins.")
+        elif player_value < dealer_value:
+            payout = -bet
+            print("Dealer wins.")
+        else:
+            payout = 0
+            print("Push (tie).")
+        
+        # Update bankroll
+        self.bankroll += payout
+        print(f"Bankroll after round: ${self.bankroll:.2f}")
 
 # Data Collector Class
 class DataCollector:
