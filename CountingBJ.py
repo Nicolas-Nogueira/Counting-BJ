@@ -8,7 +8,7 @@ def main():
     data = DataCollector()
     
 
-    for _ in range(1000):
+    for _ in range(100):
         game.reset()
         agent.play_game(game)
         data.record(agent.current_bet, agent.bankroll)
@@ -134,7 +134,7 @@ class Agent:
         self.running_count = 0
         self.true_count = 0
         self.betting_unit = 25
-        self.bankroll = 1000  # starting money
+        self.bankroll = 500 # starting money
         self.current_bet = 0
 
     def update_running_count(self, cards_seen):
@@ -263,7 +263,7 @@ class DataCollector:
         plt.plot(rounds, self.profits, label='Bankroll', color='green')
         plt.xlabel('Round')
         plt.ylabel('Bankroll ($)')
-        plt.title('📈 Bankroll Over Time')
+        plt.title('Bankroll Over Time')
         plt.grid(True)
         plt.legend()
 
@@ -272,7 +272,7 @@ class DataCollector:
         plt.plot(rounds, self.bets, label='Bet Size', color='blue')
         plt.xlabel('Round')
         plt.ylabel('Bet Amount ($)')
-        plt.title('💵 Bet Size Per Round')
+        plt.title('Bet Size Per Round')
         plt.grid(True)
         plt.legend()
 
