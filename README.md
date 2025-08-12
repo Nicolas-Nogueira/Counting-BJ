@@ -1,39 +1,42 @@
-Overview
-This Python script simulates a series of Blackjack games to compare the performance of two different agents: a Counting Agent and a Random Agent. The Counting Agent uses card counting strategies to make decisions, while the Random Agent makes decisions randomly. The script collects data on the bankrolls of both agents over multiple games and visualizes the results.
+Blackjack Agent Simulator
+A Python project that simulates multiple rounds of Blackjack to compare the performance of two agents: a Counting Agent using card counting strategies, and a Random Agent making decisions randomly. It tracks their bankrolls over time and visualizes the results.
 
-Dependencies
+Features
+Simulates 100 rounds of Blackjack gameplay
+
+Implements a Counting Agent with card counting strategy
+
+Implements a Random Agent with random decision-making
+
+Collects and visualizes bankroll data for both agents
+
+Includes tests for the Blackjack game logic
+
+Technologies Used
 Python 3.x
-matplotlib for plotting results
-You can install the required library using pip:
+
+matplotlib (for data visualization)
+
+Installation
+Clone the repo: git clone repo-link
+
+Install dependencies: pip install matplotlib
+
+Usage
+Run the script to simulate 100 rounds of Blackjack and visualize the agents’ bankroll performance over time.
+
+<img width="468" height="281" alt="image" src="https://github.com/user-attachments/assets/5e84758c-1438-4018-9b78-bee18fb9e776" />
+
+<img width="468" height="195" alt="image" src="https://github.com/user-attachments/assets/52d0611b-10ba-4f1e-b039-8fafce6b333c" />  
+
+<img width="468" height="195" alt="image" src="https://github.com/user-attachments/assets/fb102684-90b4-415e-8015-11974a0c5f11" />
 
 
-Script Structure
-Main Program
-The main() function initializes the game and agents, runs the simulation for 100 rounds, and visualizes the results.
 
-Classes
-BlackjackGame
-This class represents the Blackjack game itself. It includes methods for creating and shuffling the deck, dealing cards, calculating hand values, and managing the dealer's turn.
 
-CountingAgent
-This class represents the agent that uses card counting strategies. It includes methods for updating the running count, calculating the true count, placing bets, deciding moves based on basic strategy rules, and playing a game round.
 
-RandomAgent
-This class represents the agent that makes random decisions. It includes methods for placing bets, deciding moves randomly, and playing a game round.
 
-DataCollector
-This class collects and visualizes the bankroll data of both agents. It includes methods for recording bankrolls and plotting the results.
 
-Functions
-test_blackjack_game()
-This function runs a series of tests on the BlackjackGame class to ensure its methods work correctly.
-
-How to Run
-Ensure you have Python 3.x installed.
-Install the required library (matplotlib) using pip.
-Run the script:
-
-The script will simulate 100 rounds of Blackjack, comparing the performance of the Counting Agent and the Random Agent, and then visualize the results in a plot.
 
 
 
