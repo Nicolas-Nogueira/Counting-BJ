@@ -171,18 +171,27 @@ class CountingAgent:
 
 
         #hard total 
-        if player_val <= 9 :
-            return 'double' if can_double and 3 <= dealer_val <=6 else 'hit'
-        elif player_val == 10 :
+        if player_val <= 8:
+            return 'hit'
+        
+        elif player_val == 9:
+            return 'double' if can_double and 3 <= dealer_val <= 6 else 'hit'
+        
+        elif player_val == 10:
             return 'double' if can_double and dealer_val <= 9 else 'hit'
+        
         elif player_val == 11:
-            return 'double' if can_double else 'hit' 
+            return 'double' if can_double else 'hit'
+        
         elif player_val == 12:
-            return 'stand' if can_double and dealer_val in [4,5,6] else 'hit'
+            return 'stand' if dealer_val in [4,5,6] else 'hit'
+        
         elif player_val in [13,14,15,16]:
-            return 'stand' if can_double and dealer_val in range(2,6) else 'hit'
+            return 'stand' if dealer_val in [2,3,4,5,6] else 'hit'
+        
         else:
             return 'stand'
+
 
     def play_game(self, game):
         # initial setup 
