@@ -90,7 +90,8 @@ Based on the simulation results:
 
 ## Future Enhancements
 
-- Add more sophisticated agent strategies (Basic Strategy, Hi-Lo counting variations)
+- Add soft Basic Strategy
+- Add more sophisticated agent strategies like Hi-Lo counting variations and KO
 - Implement configurable simulation parameters (rounds, starting bankroll, betting limits)
 - Export results to CSV for further analysis
 - Add real-time progress display
